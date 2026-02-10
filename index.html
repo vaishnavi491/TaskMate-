@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TaskMate Tasks & Reminders</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+
+  <body>
+    <div class="app-container">
+      <!-- Sidebar Navigation -->
+      <nav class="sidebar">
+        <div class="logo">
+          <h2>
+            TaskMate <span style="font-weight: 400; opacity: 0.7">Lush</span>
+          </h2>
+        </div>
+
+        <div class="nav-links">
+          <button class="nav-btn active" data-view="list">
+            <i data-lucide="list"></i> List
+          </button>
+          <button class="nav-btn" data-view="board">
+            <i data-lucide="kanban"></i> Board
+          </button>
+          <button class="nav-btn" data-view="timer">
+            <i data-lucide="timer"></i> Focus
+          </button>
+          <button class="nav-btn" data-view="analytics">
+            <i data-lucide="bar-chart-2"></i> Insights
+          </button>
+        </div>
+
+        <div class="nav-footer">
+          <button id="themeBtn" class="nav-btn ghost" title="Toggle Theme">
+            <i data-lucide="sun"></i> Theme
+          </button>
+          <div style="font-size: 0.8rem; opacity: 0.6; padding: 1rem">
+            Stored: <span id="count">0</span> tasks
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <header>
+          <h1><span id="pageTitle">My Tasks</span></h1>
+          <div class="controls">
+            <button id="notifyPermBtn" class="btn ghost">
+              <i
+                data-lucide="bell"
+                style="
+                  width: 16px;
+                  height: 16px;
+                  margin-right: 4px;
+                  vertical-align: middle;
+                "
+              ></i>
+              Notifications
+            </button>
+            <button id="clearAllBtn" class="btn ghost" title="Clear everything">
+              <i
+                data-lucide="trash-2"
+                style="
+                  width: 16px;
+                  height: 16px;
+                  margin-right: 4px;
+                  vertical-align: middle;
+                "
+              ></i>
+              Clear All
+            </button>
+          </div>
+        </header>
+
+        <!-- VIEW 1: LIST (Existing) -->
+        <div id="view-list" class="view-section active">
+          <div class="top">
+            <div class="card">
+              <form id="taskForm">
+                <div class="row">
+                  <div class="field">
+                    <label for="title">Title</label>
+                    <input
+                      id="title"
+                      type="text"
+                      placeholder="e.g. Finish report"
+                      required
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="priority">Priority</label>
+                    <select id="priority">
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="field">
+                    <label for="notes">Notes</label>
+                    <textarea
+                      id="notes"
+                      placeholder="Optional details..."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="field">
+                    <label>Subtasks</label>
+                    <div id="subtaskList">
+                      <!-- Dynamic inputs go here -->
+                    </div>
+                    <button
+                      type="button"
+                      id="addSubtaskBtn"
+                      class="btn ghost sm"
+                      style="margin-top: 0.5rem; justify-content: center"
+                    >
+                      + Add Step
+                    </button>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="field">
+                    <label for="due">Due date</label>
+                    <input id="due" type="date" />
+                  </div>
+                  <div
+                    style="
+                      flex: 0 0 120px;
+                      display: flex;
+                      flex-direction: column;
+                      justify-content: flex-end;
+                    "
+                  >
+                    <button class="btn" id="saveBtn">Add Task</button>
+                  </div>
+                </div>
+
+                <input type="hidden" id="editingId" />
+              </form>
+            </div>
+
+            <div class="card right-card">
+              <div class="filters">
+                <input
+                  id="search"
+                  class="search"
+                  type="text"
+                  placeholder="Search tasks..."
+                />
+                <select id="filterStatus">
+                  <option value="all">All</option>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                  <option value="due">Due soon</option>
+                </select>
+                <select id="sortBy">
+                  <option value="createdDesc">Newest</option>
+                  <option value="createdAsc">Oldest</option>
+                  <option value="dueAsc">Due soon</option>
+                  <option value="priorityHigh">Priority</option>
+                </select>
+              </div>
+              <div id="tasks" class="list small">
+                <!-- tasks injected here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: BOARD (Placeholder) -->
+        <div id="view-board" class="view-section">
+          <div class="kanban-board">
+            <div class="kanban-column" id="col-todo">
+              <h3>To Do</h3>
+              <div class="kanban-list" data-status="todo"></div>
+            </div>
+            <div class="kanban-column" id="col-doing">
+              <h3>In Progress</h3>
+              <div class="kanban-list" data-status="doing"></div>
+            </div>
+            <div class="kanban-column" id="col-done">
+              <h3>Done</h3>
+              <div class="kanban-list" data-status="done"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 3: TIMER (Zen Focus Mode) -->
+        <div id="view-timer" class="view-section">
+          <div class="timer-container" id="timerContainer">
+            <div class="focus-header">
+              <h2>Focus Session</h2>
+              <div class="focus-task-selector">
+                <select id="timerTaskSelect" class="search">
+                  <option value="">Select a task to focus on...</option>
+                </select>
+              </div>
+              <div
+                id="activeTaskDisplay"
+                style="display: none"
+                class="active-task-display"
+              >
+                <span class="focus-label">WORKING ON</span>
+                <h3 id="focusTaskTitle">Task Title</h3>
+                <button id="changeTaskBtn" class="btn ghost sm">Change</button>
+              </div>
+            </div>
+
+            <div class="timer-display">
+              <!-- Glowing Ring Container -->
+              <div class="glow-ring"></div>
+              <svg class="timer-ring" width="300" height="300">
+                <defs>
+                  <linearGradient
+                    id="gradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="100%"
+                    y2="100%"
+                  >
+                    <stop
+                      offset="0%"
+                      style="stop-color: var(--accent); stop-opacity: 1"
+                    />
+                    <stop
+                      offset="100%"
+                      style="stop-color: var(--accent-2); stop-opacity: 1"
+                    />
+                  </linearGradient>
+                </defs>
+                <circle class="ring-bg" cx="150" cy="150" r="135"></circle>
+                <circle
+                  class="ring-progress"
+                  cx="150"
+                  cy="150"
+                  r="135"
+                ></circle>
+              </svg>
+              <div class="time-text" id="timerDisplay">25:00</div>
+            </div>
+
+            <div class="timer-controls">
+              <button id="timerToggle" class="btn lg">
+                <i data-lucide="play"></i> Start Focus
+              </button>
+              <button id="timerReset" class="btn ghost lg" title="Reset">
+                <i data-lucide="rotate-ccw"></i>
+              </button>
+            </div>
+
+            <div class="timer-presets">
+              <button class="chip" onclick="setTimer(15)">15m</button>
+              <button class="chip active" onclick="setTimer(25)">25m</button>
+              <button class="chip" onclick="setTimer(45)">45m</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 4: ANALYTICS (Placeholder) -->
+        <div id="view-analytics" class="view-section">
+          <div class="stats-grid">
+            <div class="card stat-card">
+              <h3>Weekly Progress</h3>
+              <canvas id="chartWeekly"></canvas>
+            </div>
+            <div class="card stat-card">
+              <h3>Priority Distribution</h3>
+              <canvas id="chartPriority"></canvas>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
